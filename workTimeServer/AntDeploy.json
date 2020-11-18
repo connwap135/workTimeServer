@@ -1,0 +1,59 @@
+﻿{
+  "Env": [
+    {
+      "Name": "workTimeServer",
+      "ServerList": [
+        {
+          "Token": "aaaa",
+          "Host": "192.168.1.238:8091",
+          "NickName": "",
+          "IIsFireUrl": null,
+          "DockerFireUrl": null,
+          "WindowsServiceFireUrl": ""
+        }
+      ],
+      "LinuxServerList": [],
+      "IgnoreList": [],
+      "WindowsBackUpIgnoreList": []
+    }
+  ],
+  "IIsConfig": {
+    "SdkType": null,
+    "WebSiteName": "",
+    "LastEnvName": null,
+    "EnvPairList": [
+      {
+        "EnvName": "workTimeServer",
+        "ConfigName": "",
+        "DockerPort": null,
+        "DockerEnvName": null,
+        "DockerVolume": null,
+        "DockerOther": null
+      }
+    ]
+  },
+  "WindowsServiveConfig": {
+    "ServiceName": "D10考勤服务",
+    "SdkType": "netcore",
+    "LastEnvName": "workTimeServer",
+    "EnvPairList": [
+      {
+        "EnvName": "workTimeServer",
+        "ConfigName": "D10考勤服务",
+        "DockerPort": null,
+        "DockerEnvName": null,
+        "DockerVolume": null,
+        "DockerOther": null
+      }
+    ]
+  },
+  "DockerConfig": {
+    "Prot": "",
+    "AspNetCoreEnv": "",
+    "LastEnvName": null,
+    "RemoveDaysFromPublished": "10",
+    "Volume": "",
+    "Other": "",
+    "EnvPairList": []
+  }
+}
