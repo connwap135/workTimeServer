@@ -1,4 +1,7 @@
-﻿using System;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Options;
+using SqlSugar;
+using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -10,28 +13,25 @@ namespace workTimeServer
     {
         private readonly Socket mySocket;
         private readonly IPEndPoint ipLocalPoint;
+        private EndPoint RemotePoint;
         private bool RunningFlag;
         private Thread thread;
         byte[] revbufheadbak = new byte[20];
         byte[] cardnumberbuf = new byte[4];
         byte[] readcardbuf = new byte[768];
         byte[] writecardbuf = new byte[768];
-
+        private readonly IMemoryCache cache;
         public AsyncService()
         {
+            cache = new MemoryCache(Options.Create(new MemoryCacheOptions()));
             mySocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-#if DEBUG
-            ipLocalPoint = new IPEndPoint(IPAddress.Parse("192.168.1.3"), 39169);
-#else
-            ipLocalPoint = new IPEndPoint(IPAddress.Parse("192.168.1.238"), 39169);
-#endif
+            ipLocalPoint = new IPEndPoint(IPAddress.Any, 39169);
             mySocket.Bind(ipLocalPoint);
-            IPEndPoint ipep = new IPEndPoint(IPAddress.Any, 39169);
-            RemotePoint = (EndPoint)(ipep);
+            RemotePoint = ipLocalPoint;
             mySocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
         }
 
-        public EndPoint RemotePoint;
+
 
         public bool Start(HostControl hostControl)
         {
@@ -67,8 +67,6 @@ namespace workTimeServer
 
 
             EndPoint RemotePointls;
-
-
             try
             {
                 while (RunningFlag)
@@ -83,7 +81,6 @@ namespace workTimeServer
 
 
                     int rlen = mySocket.ReceiveFrom(buf, ref RemotePoint);
-
                     string RemoteIP = Convert.ToString(RemotePoint).Split(':')[0];                 //sock来源IP
                     int RemotePort = Convert.ToInt32(Convert.ToString(RemotePoint).Split(':')[1]); //Sock来源端口
 
@@ -93,7 +90,7 @@ namespace workTimeServer
                         recestr = recestr + buf[i].ToString("X2") + " ";
                     }
 
-                    if ((buf[0] == (byte)0xc1) || (buf[0] == (byte)0xd1) || (buf[0] == (byte)0xd4)) //接收到IC卡或ID卡刷卡信息-------------------------------------------------------------------------------------------
+                    if ((buf[0] == (byte)0xc1) || (buf[0] == (byte)0xd1) || (buf[0] == (byte)0xd4)) //接收到IC卡或ID卡刷卡信息
                     {//接收成功向读卡器发送回应信息
                         sendbuf[0] = 0x69;
                         for (i = 1; i < 9; i++)
@@ -104,7 +101,7 @@ namespace workTimeServer
                         readeripstr = RemoteIP;      //广域网、局域网都可以
                         IPEndPoint ipep = new IPEndPoint(IPAddress.Parse(readeripstr), RemotePort);
 
-                        RemotePointls = (EndPoint)(ipep);
+                        RemotePointls = ipep;
                         mySocket.SendTo(sendbuf, 9, SocketFlags.None, RemotePointls); //向读卡器发送确认已收到的信息,否则读卡器将发送三次
                         string sendstr = "SendTo：" + (RemotePointls + "                        ").Substring(0, 22) + "电脑发送：";
                         for (i = 0; i < 9; i++)
@@ -132,12 +129,12 @@ namespace workTimeServer
                             //唯一硬件序号
                             if (rlen > 14)
                             {
-                                msg = msg + ",唯一硬件序号[";
+                                msg += ",唯一硬件序号[";
                                 for (i = 14; i < rlen; i++)
                                 {
-                                    msg = msg + buf[i].ToString("X2");
+                                    msg += buf[i].ToString("X2");
                                 }
-                                msg = msg + "]";
+                                msg += "]";
                             }
                             Console.WriteLine(msg);
                             var ts = DateTime.Now;
@@ -151,26 +148,46 @@ namespace workTimeServer
                                 NUM = ts.ToString("yyyy-MM-dd"),
                                 WN = jihaostr
                             };
-                            //var IsAny = DbContext.Instance.Client.Queryable<QTSJ>().Where(x => x.GH == obj.GH && x.RQ == obj.RQ && x.HS1 == obj.HS1 && x.MS1 == obj.MS1).WithCache().Any();
-                            //if (!IsAny)
-                            //{
-                            DbContext.Instance.Client.Insertable(obj).ExecuteCommand();
-                            //}
-                            var user = DbContext.Instance.Client.Queryable<employee>().Where(x => x.e_sushe.Equals(cardnumberstr) && x.e_lzfs.Equals("在职")).WithCache().First();
-                            var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss");
-                            Display(RemoteIP, RemotePort, strls1 + " " + cardnumberstr + " " + user?.e_xinming);
-
+                            try
+                            {
+                                var user = DbContext.Instance.Client.Queryable<employee>().Where(x => x.e_sushe.Equals(cardnumberstr) && x.e_lzfs.Equals("在职")).WithCache().First();
+                                var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss");
+                                string CacheKey = $"VID{obj.GH}";
+                                var cacheObj = cache.Get(CacheKey);
+                                if (cacheObj == null)
+                                {
+                                    DbContext.Instance.Client.Insertable(obj).ExecuteCommand();
+                                    MemoryCacheEntryOptions options = new MemoryCacheEntryOptions
+                                    {
+                                        AbsoluteExpiration = DateTime.Now.AddMinutes(15),
+                                        SlidingExpiration = TimeSpan.FromMinutes(15)
+                                    };
+                                    cache.Set(CacheKey, DateTime.Now.ToString("HH:mm:ss"), options);
+                                    Display(RemoteIP, RemotePort, strls1 + " " + cardnumberstr + " " + user?.e_xinming);
+                                }
+                                else
+                                {
+                                    var str = cacheObj.ToString();
+                                    Display(RemoteIP, RemotePort, "请间隔15分钟刷卡!上次打卡:" + str);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine(ex.Message);
+                            }
                         }
                     }
                     else if (buf[0] == 0xf3)
                     {
-                        var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss");
-                        Display(RemoteIP, RemotePort, strls1 + "    请刷卡.....");
-                        //button2(RemoteIP, RemotePort);
+                        var any = DbContext.Instance.Client.Queryable<DeviceTimes>().Where(x => x.Yes == DateTime.Now.Hour).WithCache(3600).Any();
+                        if (any)
+                        {
+                            var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss") + "    请刷卡.....";
+                            Display(RemoteIP, RemotePort, strls1);
+                            Console.WriteLine($"{RemoteIP}:{RemotePort}     {strls1}");
+                        }
                     }
-
                 }
-
                 mySocket.Close();
             }
             catch
@@ -195,9 +212,9 @@ namespace workTimeServer
             sendbuf1[1] = (byte)(ii % 256);
             sendbuf1[2] = (byte)(ii / 256);
             sendbuf1[3] = 0xff;//不发出声响
-            sendbuf1[4] = (byte)20;//显示保留时间，单位为秒，为255时表示永久显示
+            sendbuf1[4] = 0x05;//显示保留时间，单位为秒，为255时表示永久显示
             byte[] strlsansi = System.Text.Encoding.GetEncoding(936).GetBytes(content);
-            for (var i = 0; i < strlsansi.Length; i++)
+            for (var i = 0; i < (strlsansi.Length > 34 ? 34 : strlsansi.Length); i++)
             {
                 sendbuf1[5 + i] = (byte)strlsansi[i];
             }
@@ -277,5 +294,14 @@ namespace workTimeServer
             //    //MessageBox.Show(ex.Message.ToString());
             //}
         }
+
+        //private IPAddress GetLocalIp()
+        //{
+        //    using (var tcpClient = new TcpClient())
+        //    {
+        //        tcpClient.Connect("192.168.0.1", 8090);
+        //        return ((IPEndPoint)tcpClient.Client.LocalEndPoint).Address;
+        //    }
+        //}
     }
 }

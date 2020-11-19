@@ -15,7 +15,8 @@ namespace workTimeServer
         /// Desc:
         /// Default:
         /// Nullable:True
-        /// </summary>           
+        /// </summary> 
+        [SqlSugar.SugarColumn(IsNullable =true)]
         public short? N { get; set; }
 
         /// <summary>

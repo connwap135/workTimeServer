@@ -14,7 +14,7 @@ namespace workTimeServer
 #else
             SqlConnString = "Data Source=192.168.1.238;Initial Catalog=longtech;Persist Security Info=True;User ID=sa;Password=80370265xyf;MultipleActiveResultSets=True;Pooling=true;Max Pool Size=40000;Min Pool Size=0;Application Name=webApp2";
 #endif
-
+            Client2.CodeFirst.InitTables<DeviceTimes>();
         }
         private static readonly DbContext instance = new DbContext();
         private string SqlConnString;
@@ -38,7 +38,18 @@ namespace workTimeServer
                 DataInfoCacheService = new HttpRuntimeCache()
             }
         });
+        public SqlSugarClient Client2 => new SqlSugarClient(new ConnectionConfig()
+        {
+            ConnectionString = SqlConnString,
+            DbType = DbType.SqlServer,
+            IsAutoCloseConnection = true,
+            InitKeyType = InitKeyType.Attribute,
+            IsShardSameThread = false,
+            ConfigureExternalServices = new ConfigureExternalServices()
+            {
+                DataInfoCacheService = new HttpRuntimeCache()
+            }
+        });
 
-       
     }
 }
