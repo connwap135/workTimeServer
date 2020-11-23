@@ -6,67 +6,21 @@ namespace workTimeServer
 {
     public partial class QTSJ
     {
-        public QTSJ()
-        {
-
-
-        }
-        /// <summary>
-        /// Desc:
-        /// Default:
-        /// Nullable:True
-        /// </summary> 
-        [SqlSugar.SugarColumn(IsNullable =true)]
+        [SqlSugar.SugarColumn(IsNullable = true)]
         public short? N { get; set; }
-
-        /// <summary>
-        /// Desc:
-        /// Default:
-        /// Nullable:True
-        /// </summary>           
+        [SqlSugar.SugarColumn(IsNullable = true, Length = 6)]
         public string GH { get; set; }
-
-        /// <summary>
-        /// Desc:
-        /// Default:
-        /// Nullable:True
-        /// </summary>           
+        [SqlSugar.SugarColumn(IsNullable = true, Length = 8)]
         public string RQ { get; set; }
-
-        /// <summary>
-        /// Desc:
-        /// Default:
-        /// Nullable:True
-        /// </summary>           
+        [SqlSugar.SugarColumn(IsNullable = true)]
         public short? HS1 { get; set; }
-
-        /// <summary>
-        /// Desc:
-        /// Default:
-        /// Nullable:True
-        /// </summary>           
+        [SqlSugar.SugarColumn(IsNullable = true)]
         public short? MS1 { get; set; }
-
-        /// <summary>
-        /// Desc:
-        /// Default:
-        /// Nullable:True
-        /// </summary>           
+        [SqlSugar.SugarColumn(IsNullable = true, Length = 1)]
         public string K { get; set; }
-
-        /// <summary>
-        /// Desc:
-        /// Default:
-        /// Nullable:True
-        /// </summary>           
+        [SqlSugar.SugarColumn(IsNullable = true, Length = 10)]
         public string NUM { get; set; }
-
-        /// <summary>
-        /// Desc:
-        /// Default:
-        /// Nullable:True
-        /// </summary>           
+        [SqlSugar.SugarColumn(IsNullable = true, Length = 2)]
         public string WN { get; set; }
-
     }
 }

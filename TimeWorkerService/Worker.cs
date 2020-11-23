@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,17 +35,17 @@ namespace TimeWorkerService
             }
             catch (Exception ex)
             {
-                _logger.LogError("端口已占用,{0}",ex.Message);
+                _logger.LogError("端口已占用,{0}", ex.Message);
                 return;
             }
-            
+
             RemotePoint = ipLocalPoint;
             mySocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-            _logger.LogInformation("D10考勤服务已启动 for LINUX");
+            _logger.LogInformation($"{DateTime.Now} D10考勤服务已启动 for LINUX");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {  
+        {
             string msg;
             byte[] buf = new byte[1024];
             byte[] sendbuf = new byte[9];
@@ -151,11 +152,21 @@ namespace TimeWorkerService
                                     };
                                     cache.Set(CacheKey, DateTime.Now.ToString("HH:mm:ss"), options);
                                     Display(RemoteIP, RemotePort, strls1 + " " + cardnumberstr + " " + user?.e_xinming);
+                                    if (IsUnix())
+                                    {
+                                        var parm = user?.e_xinming + "已签到";
+                                        ShellHelper.Bash($"/usr/local/ekho/bin/ekho {parm} -a 100 -s 60");
+                                    }
                                 }
                                 else
                                 {
                                     var str = cacheObj.ToString();
                                     Display(RemoteIP, RemotePort, "请间隔15分钟刷卡!上次打卡:" + str);
+                                    if (IsUnix())
+                                    {
+                                        var parm = user?.e_xinming + "已签到";
+                                        ShellHelper.Bash($"/usr/local/ekho/bin/ekho {parm} -a 100 -s 60");
+                                    }
                                 }
                             }
                             catch (Exception ex)
@@ -166,13 +177,14 @@ namespace TimeWorkerService
                     }
                     else if (buf[0] == 0xf3)
                     {
-                        var any = await DbContext.Instance.Client.Queryable<DeviceTimes>().Where(x => x.Yes == DateTime.Now.Hour).WithCache(3600).AnyAsync();
-                        if (!any)
-                        {
-                            var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss") + "    请刷卡.....";
-                            Display(RemoteIP, RemotePort, strls1);
-                            _logger.LogInformation($"{RemoteIP}:{RemotePort}     {strls1}");
-                        }
+                        //var any = await DbContext.Instance.Client.Queryable<DeviceTimes>().Where(x => x.Yes == DateTime.Now.Hour).WithCache(3600).AnyAsync();
+                        //if (!any)
+                        //{
+                        //    var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss") + "    请刷卡.....";
+                        //    Display(RemoteIP, RemotePort, strls1);
+                        //    _logger.LogInformation($"{RemoteIP}:{RemotePort}     {strls1}");
+                        //}
+                        //_logger.LogInformation($"{RemoteIP}:{RemotePort}     {DateTime.Now}");
                     }
                 }
                 mySocket.Close();
@@ -202,6 +214,12 @@ namespace TimeWorkerService
             IPEndPoint ipep = new IPEndPoint(IPAddress.Parse(ipAddress), port);
             var RemotePointls = (EndPoint)(ipep);
             mySocket.SendTo(sendbuf1, 39, SocketFlags.None, RemotePointls);
+        }
+
+        public static bool IsUnix()
+        {
+            var isUnix = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            return isUnix;
         }
     }
 }

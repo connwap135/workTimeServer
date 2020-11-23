@@ -8,7 +8,6 @@ namespace workTimeServer
     {
         static void Main(string[] args)
         {
-            //DbContext.Instance.Client.DbFirst.CreateClassFile("d:\\Demo\\2", "Models");
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             var title = "D10考勤服务";
             HostFactory.Run(x => {

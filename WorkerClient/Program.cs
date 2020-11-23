@@ -1,9 +1,5 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Runtime.InteropServices;
 
 namespace WorkerClient
 {
@@ -11,14 +7,25 @@ namespace WorkerClient
     {
         public static void Main(string[] args)
         {
-            CreateHostBuilder(args).Build().Run();
+            //CreateHostBuilder(args).Build().Run();
+            if (IsUnix())
+            {
+                Console.WriteLine("is linux");
+                var parm = "ÒÑÇ©µ½";
+                ShellHelper.Bash($"ekho {parm} -a 100 -s 80");
+            }
         }
 
-        public static IHostBuilder CreateHostBuilder(string[] args) =>
-            Host.CreateDefaultBuilder(args)
-                .ConfigureServices((hostContext, services) =>
-                {
-                    services.AddHostedService<Worker>();
-                });
+        //public static IHostBuilder CreateHostBuilder(string[] args) =>
+        //    Host.CreateDefaultBuilder(args)
+        //        .ConfigureServices((hostContext, services) =>
+        //        {
+        //            services.AddHostedService<Worker>();
+        //        });
+        public static bool IsUnix()
+        {
+            var isUnix = RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
+            return isUnix;
+        }
     }
 }

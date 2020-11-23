@@ -1,10 +1,13 @@
 ﻿using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Options;
-using SqlSugar;
+using Quartz;
+using Quartz.Impl;
 using System;
+using System.Collections.Specialized;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Threading.Tasks;
 using Topshelf;
 
 namespace workTimeServer
@@ -20,6 +23,7 @@ namespace workTimeServer
         byte[] cardnumberbuf = new byte[4];
         byte[] readcardbuf = new byte[768];
         byte[] writecardbuf = new byte[768];
+        private IScheduler sched;
         private readonly IMemoryCache cache;
         public AsyncService()
         {
@@ -29,15 +33,43 @@ namespace workTimeServer
             mySocket.Bind(ipLocalPoint);
             RemotePoint = ipLocalPoint;
             mySocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
+            InitScheduler().GetAwaiter().GetResult();//不能异步操作
         }
 
+        private async Task InitScheduler()
+        {
+            NameValueCollection properties = new NameValueCollection();
+            properties["quartz.scheduler.instanceName"] = "AsyncScheduler";
+            properties["quartz.scheduler.instanceId"] = "instance_one";
+            properties["quartz.threadPool.type"] = "Quartz.Simpl.SimpleThreadPool, Quartz";
+            properties["quartz.threadPool.threadCount"] = "5";
+            properties["quartz.threadPool.threadPriority"] = "Normal";
+            properties["quartz.jobStore.misfireThreshold"] = "60000";
+            StdSchedulerFactory sf = new StdSchedulerFactory(properties);
+            sched = await sf.GetScheduler();
+            Console.WriteLine($"任务调度器已启动");
+            // 创建作业和触发器
+            IJobDetail job = JobBuilder.Create<AsyncMysqlDBJob>()
+                        .StoreDurably(true)
+                        .RequestRecovery(true)
+                        .WithIdentity("AsyncMysqlDBJob", "Group1")
+                        .WithDescription("同步员工信息到树莓派Mysql更新任务")
+                        .Build();
 
+            ITrigger trigger = TriggerBuilder.Create()
+                                        .WithCronSchedule("0 0 7,13 * * ? ")
+                                        .Build();
+
+            await sched.ScheduleJob(job, trigger);
+        }
 
         public bool Start(HostControl hostControl)
         {
+            sched.Start();
             RunningFlag = true;
             thread = new Thread(new ThreadStart(this.ReceiveHandle));
             thread.Start();
+
             return true;
         }
 
@@ -52,19 +84,11 @@ namespace workTimeServer
             uint cardhao;
 
             int i;
-            //int j;
-            //int m;
-
             string readeripstr;//读卡器IP地址
             string jihaostr;//读卡器机号
             string pktstr;//数据包序号
             string cardnumberstr;//卡号
-
-            //string strls;
             string recestr = "";//接收数据显示
-            //string readmac = "";//读卡器MAC
-            //byte beep = 0x01;
-
 
             EndPoint RemotePointls;
             try
@@ -199,6 +223,8 @@ namespace workTimeServer
         public bool Stop(HostControl hostControl)
         {
             RunningFlag = false;
+            sched.Clear();
+            sched.Shutdown();
             return true;
         }
 
