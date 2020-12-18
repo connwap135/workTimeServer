@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.InteropServices;
+using workTimeServer;
 
 namespace WorkerClient
 {
@@ -7,12 +8,16 @@ namespace WorkerClient
     {
         public static void Main(string[] args)
         {
-            //CreateHostBuilder(args).Build().Run();
-            if (IsUnix())
+            try
             {
-                Console.WriteLine("is linux");
-                var parm = "已签到";
-                ShellHelper.Bash($"ekho {parm} -a 100 -s 80");
+                //同步树莓派Mysql信息到Mssql
+                var ryList = DbContext.Instance.MySqlClinet.Queryable<QTSJ>().Where(x => x.RQ == "20201218").ToList();
+                DbContext.Instance.Client.Insertable<QTSJ>(ryList).ExecuteCommand();
+                Console.WriteLine($"本次同步{ryList.Count}条记录");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
         }
 
