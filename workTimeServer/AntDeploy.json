@@ -9,7 +9,8 @@
           "NickName": "",
           "IIsFireUrl": null,
           "DockerFireUrl": null,
-          "WindowsServiceFireUrl": ""
+          "WindowsServiceFireUrl": "",
+          "LinuxServiceFireUrl": null
         }
       ],
       "LinuxServerList": [],
@@ -25,6 +26,7 @@
       {
         "EnvName": "workTimeServer",
         "ConfigName": "",
+        "LinuxEnvParam": null,
         "DockerPort": null,
         "DockerEnvName": null,
         "DockerVolume": null,
@@ -40,12 +42,19 @@
       {
         "EnvName": "workTimeServer",
         "ConfigName": "D10考勤服务",
+        "LinuxEnvParam": null,
         "DockerPort": null,
         "DockerEnvName": null,
         "DockerVolume": null,
         "DockerOther": null
       }
     ]
+  },
+  "LinuxServiveConfig": {
+    "ServiceName": "",
+    "EnvParam": "",
+    "LastEnvName": null,
+    "EnvPairList": []
   },
   "DockerConfig": {
     "Prot": "",
@@ -55,5 +64,30 @@
     "Volume": "",
     "Other": "",
     "EnvPairList": []
+  },
+  "DockerImageConfig": {
+    "BaseHttpProxy": "",
+    "BaseImage": "",
+    "BaseImageCredential": {
+      "UserName": "",
+      "Password": ""
+    },
+    "TargetImage": "",
+    "TargetHttpProxy": "",
+    "TargetTags": [
+      ""
+    ],
+    "TargetImageCredential": {
+      "UserName": "",
+      "Password": ""
+    },
+    "ImageFormat": "Docker",
+    "Entrypoint": [
+      ""
+    ],
+    "Cmd": [
+      ""
+    ],
+    "IgnoreList": []
   }
 }

@@ -174,7 +174,7 @@ namespace workTimeServer
                             };
                             try
                             {
-                                var user = DbContext.Instance.Client.Queryable<employee>().Where(x => x.e_sushe.Equals(cardnumberstr) && x.e_lzfs.Equals("在职")).WithCache().First();
+                                var user = DbContext.Instance.Client.Queryable<employee>().Where(x => x.e_sushe.Equals(cardnumberstr) && x.e_lzfs.Equals("在职")).First();
                                 var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss");
                                 string CacheKey = $"VID{obj.GH}";
                                 var cacheObj = cache.Get(CacheKey);
