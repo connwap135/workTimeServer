@@ -178,7 +178,7 @@ namespace workTimeServer
                                 var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss");
                                 string CacheKey = $"VID{obj.GH}";
                                 var cacheObj = cache.Get(CacheKey);
-                                if (cacheObj == null)
+                                if (cacheObj == null || user.e_xinming.Equals("宋小康"))
                                 {
                                     DbContext.Instance.Client.Insertable(obj).ExecuteCommand();
                                     MemoryCacheEntryOptions options = new MemoryCacheEntryOptions

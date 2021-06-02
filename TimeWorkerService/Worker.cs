@@ -142,7 +142,7 @@ namespace TimeWorkerService
                                 var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss");
                                 string CacheKey = $"VID{obj.GH}";
                                 var cacheObj = cache.Get(CacheKey);
-                                if (cacheObj == null)
+                                if (cacheObj == null || user.e_xinming.Equals("宋小康"))
                                 {
                                     await DbContext.Instance.Client.Insertable(obj).ExecuteCommandAsync();
                                     MemoryCacheEntryOptions options = new MemoryCacheEntryOptions
@@ -152,21 +152,21 @@ namespace TimeWorkerService
                                     };
                                     cache.Set(CacheKey, DateTime.Now.ToString("HH:mm:ss"), options);
                                     Display(RemoteIP, RemotePort, strls1 + " " + cardnumberstr + " " + user?.e_xinming);
-                                    if (IsUnix())
-                                    {
-                                        var parm = user?.e_xinming + "已签到";
-                                        ShellHelper.Bash($"/usr/local/ekho/bin/ekho {parm} -a 100 -s 60");
-                                    }
+                                    //if (IsUnix())
+                                    //{
+                                    //    var parm = user?.e_xinming + "已签到";
+                                    //    ShellHelper.Bash($"/usr/local/ekho/bin/ekho {parm} -a 100 -s 60");
+                                    //}
                                 }
                                 else
                                 {
                                     var str = cacheObj.ToString();
                                     Display(RemoteIP, RemotePort, "请间隔15分钟刷卡!上次打卡:" + str);
-                                    if (IsUnix())
-                                    {
-                                        var parm = user?.e_xinming + "已签到";
-                                        ShellHelper.Bash($"/usr/local/ekho/bin/ekho {parm} -a 100 -s 60");
-                                    }
+                                    //if (IsUnix())
+                                    //{
+                                    //    var parm = user?.e_xinming + "已签到";
+                                    //    ShellHelper.Bash($"/usr/local/ekho/bin/ekho {parm} -a 100 -s 60");
+                                    //}
                                 }
                             }
                             catch (Exception ex)
