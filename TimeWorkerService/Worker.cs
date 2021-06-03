@@ -13,7 +13,7 @@ namespace TimeWorkerService
 {
     public class Worker : BackgroundService
     {
-        private readonly ILogger<Worker> _logger;
+        //private readonly ILogger<Worker> _logger;
         private readonly Socket mySocket;
         private readonly IPEndPoint ipLocalPoint;
         private EndPoint RemotePoint;
@@ -25,7 +25,7 @@ namespace TimeWorkerService
 
         public Worker(ILogger<Worker> logger)
         {
-            _logger = logger;
+            //_logger = logger;
             cache = new MemoryCache(Options.Create(new MemoryCacheOptions()));
             mySocket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
             ipLocalPoint = new IPEndPoint(IPAddress.Any, 39169);
@@ -35,13 +35,13 @@ namespace TimeWorkerService
             }
             catch (Exception ex)
             {
-                _logger.LogError("端口已占用,{0}", ex.Message);
+                Console.WriteLine("端口已占用,{0}", ex.Message);
                 return;
             }
 
             RemotePoint = ipLocalPoint;
             mySocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-            _logger.LogInformation($"{DateTime.Now} D10考勤服务已启动 for LINUX");
+            Console.WriteLine($"{DateTime.Now} D10考勤服务已启动 for LINUX");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -124,7 +124,7 @@ namespace TimeWorkerService
                                 }
                                 msg += "]";
                             }
-                            _logger.LogInformation(msg);
+                            Console.WriteLine(msg);
                             var ts = DateTime.Now;
                             var obj = new QTSJ
                             {
@@ -171,7 +171,7 @@ namespace TimeWorkerService
                             }
                             catch (Exception ex)
                             {
-                                _logger.LogError(ex.Message);
+                                Console.WriteLine(ex.Message);
                             }
                         }
                     }
