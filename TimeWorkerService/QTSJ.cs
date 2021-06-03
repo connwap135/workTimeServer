@@ -1,4 +1,4 @@
-﻿namespace TimeWorkerService
+namespace TimeWorkerService
 {
     public partial class QTSJ
     {

@@ -35,13 +35,13 @@ namespace TimeWorkerService
             }
             catch (Exception ex)
             {
-                _logger.LogError("¶Ë¿ÚÒÑÕ¼ÓÃ,{0}", ex.Message);
+                _logger.LogError("ç«¯å£å·²å ç”¨,{0}", ex.Message);
                 return;
             }
 
             RemotePoint = ipLocalPoint;
             mySocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-            _logger.LogInformation($"{DateTime.Now} D10¿¼ÇÚ·şÎñÒÑÆô¶¯ for LINUX");
+            _logger.LogInformation($"{DateTime.Now} D10è€ƒå‹¤æœåŠ¡å·²å¯åŠ¨ for LINUX");
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -52,11 +52,11 @@ namespace TimeWorkerService
             byte[] sendwritbuf = new byte[200];
             uint cardhao;
             int i;
-            string readeripstr;//¶Á¿¨Æ÷IPµØÖ·
-            string jihaostr;//¶Á¿¨Æ÷»úºÅ
-            string pktstr;//Êı¾İ°üĞòºÅ
-            string cardnumberstr;//¿¨ºÅ
-            string recestr = "";//½ÓÊÕÊı¾İÏÔÊ¾
+            string readeripstr;//è¯»å¡å™¨IPåœ°å€
+            string jihaostr;//è¯»å¡å™¨æœºå·
+            string pktstr;//æ•°æ®åŒ…åºå·
+            string cardnumberstr;//å¡å·
+            string recestr = "";//æ¥æ”¶æ•°æ®æ˜¾ç¤º
 
             EndPoint RemotePointls;
             try
@@ -69,55 +69,55 @@ namespace TimeWorkerService
                         continue;
                     }
                     int rlen = mySocket.ReceiveFrom(buf, ref RemotePoint);
-                    string RemoteIP = Convert.ToString(RemotePoint).Split(':')[0];                 //sockÀ´Ô´IP
-                    int RemotePort = Convert.ToInt32(Convert.ToString(RemotePoint).Split(':')[1]); //SockÀ´Ô´¶Ë¿Ú
+                    string RemoteIP = Convert.ToString(RemotePoint).Split(':')[0];                 //sockæ¥æºIP
+                    int RemotePort = Convert.ToInt32(Convert.ToString(RemotePoint).Split(':')[1]); //Sockæ¥æºç«¯å£
 
-                    recestr = "FromIP£º" + (Convert.ToString(RemotePoint) + "                             ").Substring(0, 22) + "µçÄÔ½ÓÊÕ£º";
+                    recestr = "FromIPï¼š" + (Convert.ToString(RemotePoint) + "                             ").Substring(0, 22) + "ç”µè„‘æ¥æ”¶ï¼š";
                     for (i = 0; i < rlen; i++)
                     {
                         recestr = recestr + buf[i].ToString("X2") + " ";
                     }
 
-                    if ((buf[0] == (byte)0xc1) || (buf[0] == (byte)0xd1) || (buf[0] == (byte)0xd4)) //½ÓÊÕµ½IC¿¨»òID¿¨Ë¢¿¨ĞÅÏ¢
-                    {//½ÓÊÕ³É¹¦Ïò¶Á¿¨Æ÷·¢ËÍ»ØÓ¦ĞÅÏ¢
+                    if ((buf[0] == (byte)0xc1) || (buf[0] == (byte)0xd1) || (buf[0] == (byte)0xd4)) //æ¥æ”¶åˆ°ICå¡æˆ–IDå¡åˆ·å¡ä¿¡æ¯
+                    {//æ¥æ”¶æˆåŠŸå‘è¯»å¡å™¨å‘é€å›åº”ä¿¡æ¯
                         sendbuf[0] = 0x69;
                         for (i = 1; i < 9; i++)
                         {
                             sendbuf[i] = buf[i];
                         }
 
-                        readeripstr = RemoteIP;      //¹ãÓòÍø¡¢¾ÖÓòÍø¶¼¿ÉÒÔ
+                        readeripstr = RemoteIP;      //å¹¿åŸŸç½‘ã€å±€åŸŸç½‘éƒ½å¯ä»¥
                         IPEndPoint ipep = new IPEndPoint(IPAddress.Parse(readeripstr), RemotePort);
 
                         RemotePointls = ipep;
-                        mySocket.SendTo(sendbuf, 9, SocketFlags.None, RemotePointls); //Ïò¶Á¿¨Æ÷·¢ËÍÈ·ÈÏÒÑÊÕµ½µÄĞÅÏ¢,·ñÔò¶Á¿¨Æ÷½«·¢ËÍÈı´Î
-                        string sendstr = "SendTo£º" + (RemotePointls + "                        ").Substring(0, 22) + "µçÄÔ·¢ËÍ£º";
+                        mySocket.SendTo(sendbuf, 9, SocketFlags.None, RemotePointls); //å‘è¯»å¡å™¨å‘é€ç¡®è®¤å·²æ”¶åˆ°çš„ä¿¡æ¯,å¦åˆ™è¯»å¡å™¨å°†å‘é€ä¸‰æ¬¡
+                        string sendstr = "SendToï¼š" + (RemotePointls + "                        ").Substring(0, 22) + "ç”µè„‘å‘é€ï¼š";
                         for (i = 0; i < 9; i++)
                         { sendstr = sendstr + sendbuf[i].ToString("X2") + " "; }
 
                         if (revbufheadbak[0] == buf[0] && revbufheadbak[1] == buf[1] && revbufheadbak[2] == buf[2] && revbufheadbak[3] == buf[3] && revbufheadbak[4] == buf[4] && revbufheadbak[5] == buf[5] && revbufheadbak[6] == buf[6] && revbufheadbak[7] == buf[7] && revbufheadbak[8] == buf[8])
                         {
-                            //½ÓÊÕµ½ÖØ·¢µÄÊı¾İ°ü£¬²»½øĞĞ´¦ÀíÖ±½Ó¶ªÆú                       
+                            //æ¥æ”¶åˆ°é‡å‘çš„æ•°æ®åŒ…ï¼Œä¸è¿›è¡Œå¤„ç†ç›´æ¥ä¸¢å¼ƒ                       
                         }
                         else
                         {
-                            //½ÓÊÕµ½Ë¢¿¨ĞÅÏ¢£º¶Á¿¨Æ÷IPµØÖ·[192.168.1.218],»úºÅ[2],Êı¾İ°üĞòºÅ[21],ÎïÀí¿¨ºÅ[00-B2-BA-A9-04]
-                            jihaostr = Convert.ToString(buf[5] + buf[6] * 256);//»úºÅ
-                            pktstr = Convert.ToString(buf[7] + buf[8] * 256);//Êı¾İ°üĞòºÅ
+                            //æ¥æ”¶åˆ°åˆ·å¡ä¿¡æ¯ï¼šè¯»å¡å™¨IPåœ°å€[192.168.1.218],æœºå·[2],æ•°æ®åŒ…åºå·[21],ç‰©ç†å¡å·[00-B2-BA-A9-04]
+                            jihaostr = Convert.ToString(buf[5] + buf[6] * 256);//æœºå·
+                            pktstr = Convert.ToString(buf[7] + buf[8] * 256);//æ•°æ®åŒ…åºå·
                             if (buf[0] == (byte)0xc1)
                             { cardhao = (uint)(buf[13] * 256 * 256 * 256 + buf[12] * 256 * 256 + buf[11] * 256 + buf[10]); }
                             else
                             { cardhao = (uint)(buf[12] * 256 * 256 * 256 + buf[11] * 256 * 256 + buf[10] * 256 + buf[9]); }
 
-                            cardnumberstr = "0000000000" + Convert.ToString(cardhao);//¿¨ºÅ
+                            cardnumberstr = "0000000000" + Convert.ToString(cardhao);//å¡å·
                             cardnumberstr = cardnumberstr.Substring(cardnumberstr.Length - 10, 10);
                             cardnumberstr = cardnumberstr.Substring(4, 6);
-                            msg = "½ÓÊÕµ½Ë¢¿¨ĞÅÏ¢£º¶Á¿¨Æ÷IPµØÖ·[" + readeripstr + "],»úºÅ[" + jihaostr + "],Êı¾İ°üĞòºÅ[" + pktstr + "],ÎïÀí¿¨ºÅ[" + cardnumberstr + "]";
+                            msg = "æ¥æ”¶åˆ°åˆ·å¡ä¿¡æ¯ï¼šè¯»å¡å™¨IPåœ°å€[" + readeripstr + "],æœºå·[" + jihaostr + "],æ•°æ®åŒ…åºå·[" + pktstr + "],ç‰©ç†å¡å·[" + cardnumberstr + "]";
 
-                            //Î¨Ò»Ó²¼şĞòºÅ
+                            //å”¯ä¸€ç¡¬ä»¶åºå·
                             if (rlen > 14)
                             {
-                                msg += ",Î¨Ò»Ó²¼şĞòºÅ[";
+                                msg += ",å”¯ä¸€ç¡¬ä»¶åºå·[";
                                 for (i = 14; i < rlen; i++)
                                 {
                                     msg += buf[i].ToString("X2");
@@ -138,11 +138,11 @@ namespace TimeWorkerService
                             };
                             try
                             {
-                                var user = await DbContext.Instance.Client.Queryable<employee>().Where(x => x.e_sushe.Equals(cardnumberstr) && x.e_lzfs.Equals("ÔÚÖ°")).FirstAsync();
+                                var user = await DbContext.Instance.Client.Queryable<employee>().Where(x => x.e_sushe.Equals(cardnumberstr) && x.e_lzfs.Equals("åœ¨èŒ")).FirstAsync();
                                 var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss");
                                 string CacheKey = $"VID{obj.GH}";
                                 var cacheObj = cache.Get(CacheKey);
-                                if (cacheObj == null || user.e_xinming.Equals("ËÎĞ¡¿µ"))
+                                if (cacheObj == null || user.e_xinming.Equals("å®‹å°åº·"))
                                 {
                                     await DbContext.Instance.Client.Insertable(obj).ExecuteCommandAsync();
                                     MemoryCacheEntryOptions options = new MemoryCacheEntryOptions
@@ -154,17 +154,17 @@ namespace TimeWorkerService
                                     Display(RemoteIP, RemotePort, strls1 + " " + cardnumberstr + " " + user?.e_xinming);
                                     //if (IsUnix())
                                     //{
-                                    //    var parm = user?.e_xinming + "ÒÑÇ©µ½";
+                                    //    var parm = user?.e_xinming + "å·²ç­¾åˆ°";
                                     //    ShellHelper.Bash($"/usr/local/ekho/bin/ekho {parm} -a 100 -s 60");
                                     //}
                                 }
                                 else
                                 {
                                     var str = cacheObj.ToString();
-                                    Display(RemoteIP, RemotePort, "Çë¼ä¸ô15·ÖÖÓË¢¿¨!ÉÏ´Î´ò¿¨:" + str);
+                                    Display(RemoteIP, RemotePort, "è¯·é—´éš”15åˆ†é’Ÿåˆ·å¡!ä¸Šæ¬¡æ‰“å¡:" + str);
                                     //if (IsUnix())
                                     //{
-                                    //    var parm = user?.e_xinming + "ÒÑÇ©µ½";
+                                    //    var parm = user?.e_xinming + "å·²ç­¾åˆ°";
                                     //    ShellHelper.Bash($"/usr/local/ekho/bin/ekho {parm} -a 100 -s 60");
                                     //}
                                 }
@@ -180,7 +180,7 @@ namespace TimeWorkerService
                         //var any = await DbContext.Instance.Client.Queryable<DeviceTimes>().Where(x => x.Yes == DateTime.Now.Hour).WithCache(3600).AnyAsync();
                         //if (!any)
                         //{
-                        //    var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss") + "    ÇëË¢¿¨.....";
+                        //    var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss") + "    è¯·åˆ·å¡.....";
                         //    Display(RemoteIP, RemotePort, strls1);
                         //    _logger.LogInformation($"{RemoteIP}:{RemotePort}     {strls1}");
                         //}
@@ -201,11 +201,11 @@ namespace TimeWorkerService
             sendbuf1 = new byte[39];
             int ii = 0;
 
-            sendbuf1[0] = 0x5a;//ÉùÏìÖ¸Áî
+            sendbuf1[0] = 0x5a;//å£°å“æŒ‡ä»¤
             sendbuf1[1] = (byte)(ii % 256);
             sendbuf1[2] = (byte)(ii / 256);
-            sendbuf1[3] = 0xff;//²»·¢³öÉùÏì
-            sendbuf1[4] = 0x05;//ÏÔÊ¾±£ÁôÊ±¼ä£¬µ¥Î»ÎªÃë£¬Îª255Ê±±íÊ¾ÓÀ¾ÃÏÔÊ¾
+            sendbuf1[3] = 0xff;//ä¸å‘å‡ºå£°å“
+            sendbuf1[4] = 0x05;//æ˜¾ç¤ºä¿ç•™æ—¶é—´ï¼Œå•ä½ä¸ºç§’ï¼Œä¸º255æ—¶è¡¨ç¤ºæ°¸ä¹…æ˜¾ç¤º
             byte[] strlsansi = System.Text.Encoding.GetEncoding(936).GetBytes(content);
             for (var i = 0; i < (strlsansi.Length > 34 ? 34 : strlsansi.Length); i++)
             {
