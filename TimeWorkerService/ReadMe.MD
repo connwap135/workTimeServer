@@ -25,7 +25,7 @@ use mysql;
 # 修改密码为123456
 set password=PASSWORD('123456');
 # 添加远程访问
-GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '123456'；
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY '123456';
 # 刷新
 flush privileges;
 

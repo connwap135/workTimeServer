@@ -23,7 +23,7 @@ namespace workTimeServer
         byte[] cardnumberbuf = new byte[4];
         byte[] readcardbuf = new byte[768];
         byte[] writecardbuf = new byte[768];
-        private IScheduler sched;
+        //private IScheduler sched;
         private readonly IMemoryCache cache;
         public AsyncService()
         {
@@ -33,39 +33,39 @@ namespace workTimeServer
             mySocket.Bind(ipLocalPoint);
             RemotePoint = ipLocalPoint;
             mySocket.SetSocketOption(SocketOptionLevel.Socket, SocketOptionName.Broadcast, 1);
-            InitScheduler().GetAwaiter().GetResult();//不能异步操作
+            //InitScheduler().GetAwaiter().GetResult();//不能异步操作
         }
 
-        private async Task InitScheduler()
-        {
-            NameValueCollection properties = new NameValueCollection();
-            properties["quartz.scheduler.instanceName"] = "AsyncScheduler";
-            properties["quartz.scheduler.instanceId"] = "instance_one";
-            properties["quartz.threadPool.type"] = "Quartz.Simpl.SimpleThreadPool, Quartz";
-            properties["quartz.threadPool.threadCount"] = "5";
-            properties["quartz.threadPool.threadPriority"] = "Normal";
-            properties["quartz.jobStore.misfireThreshold"] = "60000";
-            StdSchedulerFactory sf = new StdSchedulerFactory(properties);
-            sched = await sf.GetScheduler();
-            Console.WriteLine($"任务调度器已启动");
-            // 创建作业和触发器
-            IJobDetail job = JobBuilder.Create<AsyncMysqlDBJob>()
-                        .StoreDurably(true)
-                        .RequestRecovery(true)
-                        .WithIdentity("AsyncMysqlDBJob", "Group1")
-                        .WithDescription("同步员工信息到树莓派Mysql更新任务")
-                        .Build();
+        //private async Task InitScheduler()
+        //{
+        //    NameValueCollection properties = new NameValueCollection();
+        //    properties["quartz.scheduler.instanceName"] = "AsyncScheduler";
+        //    properties["quartz.scheduler.instanceId"] = "instance_one";
+        //    properties["quartz.threadPool.type"] = "Quartz.Simpl.SimpleThreadPool, Quartz";
+        //    properties["quartz.threadPool.threadCount"] = "5";
+        //    properties["quartz.threadPool.threadPriority"] = "Normal";
+        //    properties["quartz.jobStore.misfireThreshold"] = "60000";
+        //    StdSchedulerFactory sf = new StdSchedulerFactory(properties);
+        //    sched = await sf.GetScheduler();
+        //    Console.WriteLine($"任务调度器已启动");
+        //    // 创建作业和触发器
+        //    IJobDetail job = JobBuilder.Create<AsyncMysqlDBJob>()
+        //                .StoreDurably(true)
+        //                .RequestRecovery(true)
+        //                .WithIdentity("AsyncMysqlDBJob", "Group1")
+        //                .WithDescription("同步员工信息到树莓派Mysql更新任务")
+        //                .Build();
 
-            ITrigger trigger = TriggerBuilder.Create()
-                                        .WithCronSchedule("0 0 7,13 * * ? ")
-                                        .Build();
+        //    ITrigger trigger = TriggerBuilder.Create()
+        //                                .WithCronSchedule("0 0 7,13 * * ? ")
+        //                                .Build();
 
-            await sched.ScheduleJob(job, trigger);
-        }
+        //    await sched.ScheduleJob(job, trigger);
+        //}
 
         public bool Start(HostControl hostControl)
         {
-            sched.Start();
+            //sched.Start();
             RunningFlag = true;
             thread = new Thread(new ThreadStart(this.ReceiveHandle));
             thread.Start();
@@ -203,28 +203,37 @@ namespace workTimeServer
                     }
                     else if (buf[0] == 0xf3)
                     {
-                        var any = DbContext.Instance.Client.Queryable<DeviceTimes>().Where(x => x.Yes == DateTime.Now.Hour).WithCache(3600).Any();
-                        if (any)
+                        try
                         {
-                            var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss") + "    请刷卡.....";
-                            Display(RemoteIP, RemotePort, strls1);
-                            Console.WriteLine($"{RemoteIP}:{RemotePort}     {strls1}");
+                            var any = DbContext.Instance.Client.Queryable<DeviceTimes>().Where(x => x.Yes == DateTime.Now.Hour).WithCache(3600).Any();
+                            if (any)
+                            {
+                                var strls1 = DateTime.Now.ToString("yy-MM-dd HH:mm:ss") + "    请刷卡.....";
+                                Display(RemoteIP, RemotePort, strls1);
+                                Console.WriteLine($"{RemoteIP}:{RemotePort}     {strls1}");
+                            }
                         }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.Message);
+                            throw;
+                        }
+                        
                     }
                 }
                 mySocket.Close();
             }
-            catch
+            catch(Exception ex)
             {
-
+                Console.WriteLine(ex.Message);
             }
         }
 
         public bool Stop(HostControl hostControl)
         {
             RunningFlag = false;
-            sched.Clear();
-            sched.Shutdown();
+            //sched.Clear();
+            //sched.Shutdown();
             return true;
         }
 

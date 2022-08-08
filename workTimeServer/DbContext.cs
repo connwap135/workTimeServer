@@ -43,7 +43,6 @@ namespace workTimeServer
             DbType = DbType.SqlServer,
             IsAutoCloseConnection = true,
             InitKeyType = InitKeyType.SystemTable,
-            IsShardSameThread = false,
             ConfigureExternalServices = new ConfigureExternalServices()
             {
                 DataInfoCacheService = new HttpRuntimeCache()
@@ -56,7 +55,6 @@ namespace workTimeServer
             DbType = DbType.MySql,
             IsAutoCloseConnection = true,
             InitKeyType = InitKeyType.Attribute,
-            IsShardSameThread = false,
             ConfigureExternalServices = new ConfigureExternalServices()
             {
                 DataInfoCacheService = new HttpRuntimeCache()
